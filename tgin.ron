@@ -5,7 +5,7 @@
 
     updates: [
         LongPollUpdate(
-            token: "8546245682:AAEepqOlAZmm2joO7B4z90T72a0utrNjhJY",
+            token: "...",
         ),
 
     ],

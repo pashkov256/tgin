@@ -14,7 +14,7 @@ from aiogram.types import Message
 from aiogram.client.session.aiohttp import AiohttpSession
 from aiogram.client.telegram import TelegramAPIServer
 
-TOKEN = "8546245682:AAEepqOlAZmm2joO7B4z90T72a0utrNjhJY"
+TOKEN = "..."
 
 from pytgin.aiogram import TginUpateServer
 

@@ -8,7 +8,7 @@ from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_applicati
 
 
 dp = Dispatcher()
-bot = Bot(token="8546245682:AAEepqOlAZmm2joO7B4z90T72a0utrNjhJY")
+bot = Bot(token="...")
 
 
 
