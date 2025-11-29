@@ -1,4 +1,4 @@
-use crate::route::base::Route;
+use crate::base::{Routeable, Serverable};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::Value;
@@ -15,11 +15,17 @@ impl WebhookRoute {
             url,
         }
     }
+
+    pub fn set_client(&mut self, client: Client) {
+        self.client = client;
+    }
 }
 
 #[async_trait]
-impl Route for WebhookRoute {
-    async fn send(&self, update: Value) {
+impl Routeable for WebhookRoute {
+    async fn process(&self, update: Value) {
         let _ = self.client.post(&self.url).json(&update).send().await;
     }
 }
+
+impl Serverable for WebhookRoute {}

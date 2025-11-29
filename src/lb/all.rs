@@ -12,33 +12,34 @@ use async_trait::async_trait;
 
 use serde_json::Value;
 
-pub struct RoundRobinLB {
+pub struct AllLB {
     routes: Vec<Arc<dyn RouteableComponent>>,
-    current: AtomicUsize,
 }
 
-impl RoundRobinLB {
+impl AllLB {
     pub fn new(routes: Vec<Arc<dyn RouteableComponent>>) -> Self {
         Self {
             routes,
-            current: AtomicUsize::new(0),
         }
     }
 }
 
 #[async_trait]
-impl Routeable for RoundRobinLB {
+impl Routeable for AllLB {
     async fn process(&self, update: Value) {
-        if self.routes.is_empty() {
-            return;
+        for route in &self.routes {
+
+            let route = route.clone();
+            let update = update.clone();
+
+            tokio::spawn(async move {
+                route.process(update).await;
+            });
         }
-        let current = self.current.fetch_add(1, Ordering::Relaxed);
-        let index = current % self.routes.len();
-        self.routes[index].process(update).await;
     }
 }
 
-impl Serverable for RoundRobinLB {
+impl Serverable for AllLB {
     fn set_server(&self, mut router: Router<Sender<Value>>) -> Router<Sender<Value>> {
         for route in &self.routes {
             router = route.set_server(router);

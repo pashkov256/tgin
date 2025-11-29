@@ -1,0 +1,11 @@
+[project]
+name = "examples"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "aiogram>=3.22.0",
+    "setuptools>=80.9.0",
+    "pytgin @ file:///home/chesnok/prog/tgin/integrations/pytgin",
+]

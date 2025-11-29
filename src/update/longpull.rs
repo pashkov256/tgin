@@ -1,4 +1,6 @@
-use crate::update::base::UpdateProvider;
+
+use crate::base::{Serverable};
+use crate::update::base::Updater;
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::Value;
@@ -6,41 +8,75 @@ use tokio::sync::mpsc::Sender;
 use tokio::time::{sleep, Duration};
 
 pub struct LongPollUpdate {
-    token: String,
     client: Client,
-    base_url: &'a str
+    url: String,
+    default_timeout_sleep: u64,
+    error_timeout_sleep: u64,
 }
 
 impl LongPollUpdate {
     pub fn new(token: String) -> Self {
         Self {
-            token,
             client: Client::new(),
-            base_url: &format!("https://api.telegram.org/bot{}/getUpdates", token)
+            url: format!("https://api.telegram.org/bot{}/getUpdates", token),
+            default_timeout_sleep: 100,
+            error_timeout_sleep: 200,
         }
+    }
+
+    pub fn set_client(&mut self, client: Client) {
+        self.client = client;
+    }
+
+    pub fn set_url(&mut self, url: String) {
+        self.url = url;
+    }
+
+    pub fn set_timeouts(&mut self, default_timeout_sleep: u64, error_timeout_sleep: u64) {
+        self.default_timeout_sleep = default_timeout_sleep;
+        self.error_timeout_sleep = error_timeout_sleep;
     }
 }
 
 #[async_trait]
-impl UpdateProvider for LongPollUpdate {
+impl Updater for LongPollUpdate {
     async fn start(&self, tx: Sender<Value>) {
         let mut offset = 0;
 
         loop {
             let params = [("offset", offset.to_string()), ("timeout", "30".to_string())];
-            if let Ok(res) = self.client.get(self.base_url).query(&params).send().await {
-                if let Ok(json) = res.json::<Value>().await {
-                    if let Some(result) = json.get("result").and_then(|r| r.as_array()) {
-                        for update in result {
-                            if let Some(id) = update.get("update_id").and_then(|i| i.as_i64()) {
-                                offset = id + 1;
-                                let _ = tx.send(update.clone()).await;
+            match self.client.get(&self.url).query(&params).send().await {
+                Ok(res) => {
+                    match res.json::<Value>().await {
+                        Ok(json) => {
+                            println!("result: {:?}", json);
+                            if let Some(result) = json.get("result").and_then(|r| r.as_array()) {
+                                for update in result {
+                                    if let Some(id) = update.get("update_id").and_then(|i| i.as_i64()) {
+                                        offset = id + 1;
+                                        if tx.send(update.clone()).await.is_err() {
+                                            return;
+                                        }
+                                    }
+                                }
                             }
+                            sleep(Duration::from_millis(self.default_timeout_sleep)).await;
+                        }
+                        Err(err) => {
+                            eprintln!("JSON parse error: {:?}", err);
+                            sleep(Duration::from_millis(self.error_timeout_sleep)).await;
                         }
                     }
                 }
+                Err(err) => {
+                    eprintln!("Network error: {:?}", err);
+
+                    sleep(Duration::from_millis(self.error_timeout_sleep)).await;
+                }
             }
-            sleep(Duration::from_millis(100)).await;
         }
     }
 }
+
+impl Serverable for LongPollUpdate {}
+

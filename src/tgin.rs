@@ -1,50 +1,86 @@
-use crate::lb::base::LoadBalancer;
-use crate::update::base::UpdateProvider;
+use crate::base::{UpdaterComponent, RouteableComponent};
+use axum::Router;
 use serde_json::Value;
 use std::sync::Arc;
 use tokio::sync::mpsc;
+use tokio::sync::mpsc::Sender;
+
+use tokio::runtime::Builder; 
 
 pub struct Tgin {
-    update_providers: Vec<Box<dyn UpdateProvider>>,
-    lb: Arc<dyn LoadBalancer>,
-    workers: usize,
+    updates: Vec<Box<dyn UpdaterComponent>>,
+    route: Arc<dyn RouteableComponent>,
+    dark_threads: usize,
+    server_port: Option<u16>,
 }
 
 impl Tgin {
-    pub fn new(lb: Arc<dyn LoadBalancer>, workers: usize) -> Self {
+    pub fn new(
+        updates: Vec<Box<dyn UpdaterComponent>>,
+        route: Arc<dyn RouteableComponent>,
+        dark_threads: usize,
+        server_port: Option<u16>,
+    ) -> Self {
         Self {
-            update_providers: Vec::new(),
-            lb,
-            workers,
+            updates,
+            route,
+            dark_threads,
+            server_port,
         }
     }
 
-    pub fn add_update_provider(&mut self, provider: Box<dyn UpdateProvider>) {
-        self.update_providers.push(provider);
+    pub fn run(self) {
+        println!("Initializing Tgin Runtime with {} worker threads...", self.dark_threads);
+
+        let runtime = Builder::new_multi_thread()
+            .worker_threads(self.dark_threads)
+            .enable_all()
+            .build()
+            .expect("Failed to build Tokio runtime");
+
+        runtime.block_on(self.run_async());
     }
 
-    pub async fn run(self) {
+
+    pub async fn run_async(self) {
         let (tx, mut rx) = mpsc::channel::<Value>(10000);
 
-        for provider in self.update_providers {
+        if let Some(port) = self.server_port {
+            let mut router: Router<Sender<Value>> = Router::new();
+
+            for provider in &self.updates {
+                router = provider.set_server(router);
+            }
+
+            router = self.route.set_server(router);
+            let tx_state = tx.clone();
+
+            tokio::spawn(async move {
+                let addr = std::net::SocketAddr::from(([0, 0, 0, 0], port));
+                let listener = tokio::net::TcpListener::bind(addr).await.unwrap();
+                let app = router.with_state(tx_state);
+                axum::serve(listener, app).await.unwrap();
+            });
+        }
+
+        for provider in self.updates {
             let tx_clone = tx.clone();
             tokio::spawn(async move {
                 provider.start(tx_clone).await;
             });
         }
-
-        // Drop original tx so channel closes when producers end (though servers run forever)
+        
         drop(tx);
 
-        let lb = self.lb.clone();
-        
-        // Main Event Loop
         while let Some(update) = rx.recv().await {
-            if let Some(route) = lb.get_route() {
-                tokio::spawn(async move {
-                    route.send(update).await;
-                });
-            }
+            let route_clone = self.route.clone();
+            tokio::spawn(async move {
+                route_clone.process(update).await;
+            });
         }
+    }
+    
+    pub fn get_dark_threads_count(&self) -> usize {
+        self.dark_threads
     }
 }

@@ -1,0 +1,29 @@
+(
+    dark_threads: 10,
+
+    server_port: Some(3000),
+
+    updates: [
+        LongPollUpdate(
+            token: "8546245682:AAEepqOlAZmm2joO7B4z90T72a0utrNjhJY",
+        ),
+
+    ],
+
+    route: AllLB(
+        routes: [
+            LongPollRoute(
+                path: "/bot1/getUpdates"
+            ),
+
+            WebhookRoute(
+                url: "http://127.0.0.1:3001/bot"
+            ),
+
+            LongPollRoute(
+                path: "/bot2/getUpdates"
+            ),
+        ]
+    )
+
+)

@@ -1,36 +1,27 @@
+mod base;
 mod lb;
 mod route;
 mod tgin;
 mod update;
+mod config;
 
-use crate::lb::roundrobin::RoundRobin;
-use crate::route::base::Route;
-use crate::route::webhook::WebhookRoute;
 use crate::tgin::Tgin;
-use crate::update::webhook::WebhookUpdate;
-use std::sync::Arc;
+use crate::config::setup::{load_config, build_updates, build_route};
 
-#[tokio::main]
-async fn main() {
-    // 1. Инициализация маршрутов (куда отправлять)
-    let bot_instance_1 = Arc::new(WebhookRoute::new("http://localhost:8081/bot".to_string()));
-    let bot_instance_2 = Arc::new(WebhookRoute::new("http://localhost:8082/bot".to_string()));
+fn main() {
+    let conf = load_config("tgin.ron");
+    println!("Loaded config with {} workers", conf.dark_threads);
 
-    let routes: Vec<Arc<dyn Route>> = vec![bot_instance_1, bot_instance_2];
+    let inputs = build_updates(conf.updates);
+    let lb = build_route(conf.route);
 
-    // 2. Инициализация Load Balancer
-    let lb = Arc::new(RoundRobin::new(routes));
 
-    // 3. Инициализация Tgin
-    let mut tgin = Tgin::new(lb, 4);
+    let tgin = Tgin::new(
+        inputs, 
+        lb, 
+        conf.dark_threads, 
+        conf.server_port
+    );
 
-    // 4. Настройка источника апдейтов (откуда принимать)
-    // Tgin будет слушать порт 3000
-    tgin.add_update_provider(Box::new(WebhookUpdate::new(3000)));
-    
-    // Можно добавить LongPoll провайдер
-    // tgin.add_update_provider(Box::new(crate::update::longpull::LongPollUpdate::new("TOKEN".to_string())));
-
-    // 5. Старт
-    tgin.run().await;
+    tgin.run();
 }

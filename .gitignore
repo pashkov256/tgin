@@ -1,1 +1,6 @@
 /target
+
+.venv
+
+*.egg-info
+build
