@@ -12,6 +12,7 @@
 
 todo:
 - [ ] cli interface
+- [ ] logging
 - [ ] ddos guard
 - [ ] docker image
 - [ ] docs
@@ -27,3 +28,4 @@ todo:
 - [ ] ban users
 - [ ] support userbots
 - [ ] secure like Cloudflare WAF
+- [ ] floating input/output

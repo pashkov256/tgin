@@ -1,10 +1,9 @@
 
-use crate::base::{Routeable, RouteableComponent, Serverable};
+use crate::base::{Routeable, RouteableComponent, Serverable, Printable};
 
 use tokio::sync::mpsc::Sender;
 use axum::{Router};
 
-use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
 
@@ -45,5 +44,19 @@ impl Serverable for AllLB {
             router = route.set_server(router);
         }
         router
+    }
+}
+
+impl Printable for AllLB {
+    fn print(&self) -> String {
+
+        let mut text = String::from("LOAD BALANCER AllLB");
+
+        for route in &self.routes {
+            text.push_str(&format!("{}\n\n", &route.print()));
+        }
+
+
+        text
     }
 }

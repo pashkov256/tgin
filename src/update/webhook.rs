@@ -1,4 +1,6 @@
-use crate::base::{Serverable};
+use crate::utils::fun::hide_segment;
+
+use crate::base::{Serverable, Printable};
 
 use crate::update::base::Updater;
 use async_trait::async_trait;
@@ -89,4 +91,17 @@ impl Serverable for WebhookUpdate {
 
 async fn handler(State(tx): State<Sender<Value>>, Json(update): Json<Value>) {
     let _ = tx.send(update).await;
+}
+
+
+impl Printable for WebhookUpdate {
+    fn print(&self) -> String {
+        let reg_text = match &self.registration {
+            Some(reg)  => format!("REGISTRATED ON {}", hide_segment(&reg.set_webhook_url)),
+            None => "".to_string()
+        };
+        format!("webhook: 0.0.0.0{} {}", self.path, reg_text)
+
+
+    }
 }

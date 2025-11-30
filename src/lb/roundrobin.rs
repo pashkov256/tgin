@@ -1,5 +1,5 @@
 
-use crate::base::{Routeable, RouteableComponent, Serverable};
+use crate::base::{Routeable, RouteableComponent, Serverable, Printable};
 
 use tokio::sync::mpsc::Sender;
 use axum::{Router};
@@ -44,5 +44,18 @@ impl Serverable for RoundRobinLB {
             router = route.set_server(router);
         }
         router
+    }
+}
+
+impl Printable for RoundRobinLB {
+    fn print(&self) -> String {
+
+        let mut text = String::from("LOAD BALANCER RoundRobin\n\n");
+
+        for route in &self.routes {
+            text.push_str(&format!("{}\n\n", &route.print()));
+        }
+
+        text
     }
 }

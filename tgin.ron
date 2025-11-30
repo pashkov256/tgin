@@ -1,5 +1,5 @@
 (
-    dark_threads: 10,
+    dark_threads: 6,
 
     server_port: Some(3000),
 

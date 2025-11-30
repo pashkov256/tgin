@@ -1,5 +1,6 @@
+use crate::utils::fun::hide_segment;
 
-use crate::base::{Serverable};
+use crate::base::{Serverable, Printable};
 use crate::update::base::Updater;
 use async_trait::async_trait;
 use reqwest::Client;
@@ -49,7 +50,6 @@ impl Updater for LongPollUpdate {
                 Ok(res) => {
                     match res.json::<Value>().await {
                         Ok(json) => {
-                            println!("result: {:?}", json);
                             if let Some(result) = json.get("result").and_then(|r| r.as_array()) {
                                 for update in result {
                                     if let Some(id) = update.get("update_id").and_then(|i| i.as_i64()) {
@@ -80,3 +80,13 @@ impl Updater for LongPollUpdate {
 
 impl Serverable for LongPollUpdate {}
 
+
+
+impl Printable for LongPollUpdate {
+    fn print(&self) -> String {
+
+        let timeout_text = if self.default_timeout_sleep == 100 && self.error_timeout_sleep == 200 {format!("timeouts: {} {}", self.default_timeout_sleep, self.error_timeout_sleep)} else {"".to_string()};
+
+        format!("longpull: {} {}", hide_segment(&self.url), timeout_text)
+    }
+}

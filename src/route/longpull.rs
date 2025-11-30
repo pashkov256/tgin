@@ -1,4 +1,4 @@
-use crate::base::{Routeable, Serverable};
+use crate::base::{Routeable, Serverable, Printable};
 use async_trait::async_trait;
 
 use axum::{extract::Form, routing::post, Json, Router}; 
@@ -99,5 +99,15 @@ impl Serverable for LongPollRoute {
         };
 
         router.route(&self.path, post(handler))
+    }
+}
+
+
+
+
+
+impl Printable for LongPollRoute {
+    fn print(&self) -> String {
+        format!("webhook: 0.0.0.0{}", self.path)
     }
 }

@@ -20,8 +20,12 @@ pub trait Serverable {
     }
 }
 
-pub trait UpdaterComponent: Updater + Serverable {}
-impl<T: Updater + Serverable> UpdaterComponent for T {}
+pub trait Printable {
+    fn print(&self) -> String;
+}
 
-pub trait RouteableComponent: Routeable + Serverable {}
-impl<T: Routeable + Serverable> RouteableComponent for T {}
+pub trait UpdaterComponent: Updater + Serverable + Printable {}
+impl<T: Updater + Serverable + Printable> UpdaterComponent for T {}
+
+pub trait RouteableComponent: Routeable + Serverable + Printable {}
+impl<T: Routeable + Serverable + Printable> RouteableComponent for T {}

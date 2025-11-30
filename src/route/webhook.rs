@@ -1,4 +1,4 @@
-use crate::base::{Routeable, Serverable};
+use crate::base::{Routeable, Serverable, Printable};
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::Value;
@@ -29,3 +29,10 @@ impl Routeable for WebhookRoute {
 }
 
 impl Serverable for WebhookRoute {}
+
+
+impl Printable for WebhookRoute {
+    fn print(&self) -> String {
+        format!("longpull: {}", self.url)
+    }
+}

@@ -30,7 +30,17 @@ impl Tgin {
     }
 
     pub fn run(self) {
-        println!("Initializing Tgin Runtime with {} worker threads...", self.dark_threads);
+        println!("STARTED TGIN with {} worker threads\n", &self.dark_threads);
+
+        println!("CATCH UPDATES FROM\n");
+
+        for update in &self.updates {
+            println!("{}\n", update.print());
+        }
+
+        println!("\n\nRUTE TO\n");
+
+        println!("{}", &self.route.print());
 
         let runtime = Builder::new_multi_thread()
             .worker_threads(self.dark_threads)
