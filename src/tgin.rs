@@ -37,7 +37,7 @@ impl Tgin {
         }
     }
 
-    pub fn set_tsl(&mut self, ssl_cert: String, ssl_key: String) {
+    pub fn set_ssl(&mut self, ssl_cert: String, ssl_key: String) {
         self.ssl_cert = Some(ssl_cert);
         self.ssl_key = Some(ssl_key);
     }

@@ -34,12 +34,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let inputs = build_updates(conf.updates);
     let lb = build_route(conf.route);
 
-    let tgin = Tgin::new(
+    let mut tgin = Tgin::new(
         inputs,
         lb,
         conf.dark_threads,
         conf.server_port,
     );
+
+    if let Some(ssl) = conf.ssl {
+        tgin.set_ssl(ssl.cert, ssl.key);
+    }
 
     tgin.run();
 

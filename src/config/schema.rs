@@ -6,11 +6,19 @@ pub struct TginConfig {
     #[serde(default = "default_workers")]
     pub dark_threads: usize,
     pub server_port: Option<u16>,
+    #[serde(default)]
+    pub ssl: Option<SslConfig>,
     pub updates: Vec<UpdateConfig>,
     pub route: RouteStrategyConfig,
 }
 
 fn default_workers() -> usize { 4 }
+
+#[derive(Deserialize, Debug)]
+pub struct SslConfig {
+    pub cert: String,
+    pub key: String,
+}
 
 
 #[derive(Deserialize, Debug)]
