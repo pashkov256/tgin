@@ -3,6 +3,11 @@
 
     server_port: Some(3000),
 
+//    ssl: Some(SslConfig(
+//    	cert: "/etc/letsencrypt/live/chesnocode.com/cert.pem",
+//   	key: "/etc/letsencrypt/live/chesnocode.com/privkey.pem"
+//    )),
+
     updates: [
         LongPollUpdate(
             token: "${TOKEN}",
@@ -19,9 +24,6 @@
                 path: "/bot1/getUpdates"
             ),
 
-            WebhookRoute(
-                url: "http://127.0.0.1:3001/bot"
-            ),
 
             LongPollRoute(
                 path: "/bot2/getUpdates"
