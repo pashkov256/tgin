@@ -1,8 +1,8 @@
-use crate::utils::fun::{hide_segment, mask_secret};
-
 use crate::base::{Serverable, Printable};
-
 use crate::update::base::Updater;
+
+use crate::utils::defaults::TELEGRAM_TOKEN_REGEX;
+
 use async_trait::async_trait;
 use axum::{extract::State, routing::post, Json, Router};
 use serde_json::{json, Value};
@@ -11,12 +11,14 @@ use reqwest::Client;
 
 use tokio::sync::mpsc::Sender;
 
+use regex::Regex;
+
 pub struct RegistrationWebhookConfig {
     public_ip: String,
     client: Client,
-
-
     set_webhook_url: String,
+
+    token_regex: Regex,
 
 }
 
@@ -26,6 +28,7 @@ impl RegistrationWebhookConfig {
             public_ip,
             client: Client::new(),
             set_webhook_url: format!("https://api.telegram.org/bot{}/setWebhook", token),
+            token_regex: Regex::new(TELEGRAM_TOKEN_REGEX).unwrap(),
         }
     }
 
@@ -36,6 +39,11 @@ impl RegistrationWebhookConfig {
     pub fn set_webhook_url(&mut self, set_webhook_url: String) {
         self.set_webhook_url = set_webhook_url;
     }
+
+    pub fn set_regex_token(&mut self, regex: Regex) {
+        self.token_regex = regex;
+    }
+
 }
 
 
@@ -98,11 +106,9 @@ async fn handler(State(tx): State<Sender<Value>>, Json(update): Json<Value>) {
 impl Printable for WebhookUpdate {
     fn print(&self) -> String {
         let reg_text = match &self.registration {
-            Some(reg)  => format!("REGISTRATED ON {}", &hide_segment(&reg.set_webhook_url)),
+            Some(reg)  => format!("REGISTRATED ON {}", &reg.token_regex.replace_all(&reg.set_webhook_url, "#####")),
             None => "".to_string()
         };
         format!("webhook: 0.0.0.0{} {}", self.path, reg_text)
-
-
     }
 }

@@ -1,0 +1,49 @@
+services:
+  tgin:
+    build: 
+      context: ../../
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./tgin.ron:/etc/tgin/config.ron
+    depends_on:
+      - worker_1
+      - worker_2
+    networks:
+      testing_net:
+        ipv4_address: 10.5.0.2 
+
+  bench:
+    build: ./benchmark
+    command: tail -f /dev/null
+    networks:
+      testing_net:
+        ipv4_address: 10.5.0.3
+
+  worker_1:
+    build: .
+    environment:
+      - TELEGRAM_API_URL=http://10.5.0.3:8090
+      - WEBHOOK_PATH=/webhook
+      - PORT=8080
+    networks:
+      testing_net:
+        ipv4_address: 10.5.0.11
+
+  worker_2:
+    build: .
+    environment:
+      - TELEGRAM_API_URL=http://10.5.0.3:8090
+      - WEBHOOK_PATH=/webhook
+      - PORT=8080
+    networks:
+      testing_net:
+        ipv4_address: 10.5.0.12 
+
+networks:
+  testing_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/16

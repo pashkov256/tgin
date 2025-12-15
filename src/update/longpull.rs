@@ -1,19 +1,22 @@
-use crate::utils::fun::{hide_segment, mask_secret};
-
 use crate::base::{Serverable, Printable};
 use crate::update::base::Updater;
+use crate::utils::defaults::TELEGRAM_TOKEN_REGEX;
+
 use async_trait::async_trait;
 use reqwest::Client;
 use serde_json::Value;
 use tokio::sync::mpsc::Sender;
 use tokio::time::{sleep, Duration};
 
+use regex::Regex;
+
+
 pub struct LongPollUpdate {
     client: Client,
     url: String,
     default_timeout_sleep: u64,
     error_timeout_sleep: u64,
-    token: String
+    token_regex: Regex,
 }
 
 impl LongPollUpdate {
@@ -23,7 +26,7 @@ impl LongPollUpdate {
             url: format!("https://api.telegram.org/bot{}/getUpdates", token),
             default_timeout_sleep: 100,
             error_timeout_sleep: 200,
-            token
+            token_regex: Regex::new(TELEGRAM_TOKEN_REGEX).unwrap(),
         }
     }
 
@@ -39,6 +42,11 @@ impl LongPollUpdate {
         self.default_timeout_sleep = default_timeout_sleep;
         self.error_timeout_sleep = error_timeout_sleep;
     }
+
+    pub fn set_regex_token(&mut self, regex: Regex) {
+        self.token_regex = regex;
+    }
+
 }
 
 #[async_trait]
@@ -86,9 +94,10 @@ impl Serverable for LongPollUpdate {}
 
 impl Printable for LongPollUpdate {
     fn print(&self) -> String {
+        let token = self.token_regex.replace_all(&self.url, "#####");
 
         let timeout_text = if self.default_timeout_sleep == 100 && self.error_timeout_sleep == 200 {format!("timeouts: {} {}", self.default_timeout_sleep, self.error_timeout_sleep)} else {"".to_string()};
 
-        format!("longpull: {} {}", mask_secret(&hide_segment(&self.url), &self.token), timeout_text)
+        format!("longpull: {} {}", token, timeout_text)
     }
 }

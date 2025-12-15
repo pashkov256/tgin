@@ -1,14 +1,14 @@
-use crate::base::{UpdaterComponent, RouteableComponent};
+use crate::base::{RouteableComponent, UpdaterComponent};
 use axum::Router;
 use serde_json::Value;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 use tokio::sync::mpsc::Sender;
 
-use std::net::SocketAddr;
 use axum_server::tls_rustls::RustlsConfig;
+use std::net::SocketAddr;
 
-use tokio::runtime::Builder; 
+use tokio::runtime::Builder;
 
 pub struct Tgin {
     updates: Vec<Box<dyn UpdaterComponent>>,
@@ -17,7 +17,7 @@ pub struct Tgin {
     server_port: Option<u16>,
 
     pub ssl_cert: Option<String>,
-    pub ssl_key: Option<String>,  
+    pub ssl_key: Option<String>,
 }
 
 impl Tgin {
@@ -33,7 +33,7 @@ impl Tgin {
             dark_threads,
             server_port,
             ssl_cert: None,
-            ssl_key: None
+            ssl_key: None,
         }
     }
 
@@ -41,7 +41,6 @@ impl Tgin {
         self.ssl_cert = Some(ssl_cert);
         self.ssl_key = Some(ssl_key);
     }
-
 
     pub fn run(self) {
         println!("STARTED TGIN with {} worker threads\n", &self.dark_threads);
@@ -65,7 +64,6 @@ impl Tgin {
         runtime.block_on(self.run_async());
     }
 
-
     pub async fn run_async(self) {
         let (tx, mut rx) = mpsc::channel::<Value>(10000);
 
@@ -83,12 +81,9 @@ impl Tgin {
 
             match (self.ssl_cert.clone(), self.ssl_key.clone()) {
                 (Some(cert_path), Some(key_path)) => {
-                    let config = RustlsConfig::from_pem_file(
-                        cert_path, 
-                        key_path
-                    )
-                    .await
-                    .expect("Failed to load SSL certificates");
+                    let config = RustlsConfig::from_pem_file(cert_path, key_path)
+                        .await
+                        .expect("Failed to load SSL certificates");
 
                     tokio::spawn(async move {
                         axum_server::bind_rustls(addr, config)
@@ -104,7 +99,6 @@ impl Tgin {
                     });
                 }
             }
-
         }
 
         for provider in self.updates {
@@ -113,7 +107,7 @@ impl Tgin {
                 provider.start(tx_clone).await;
             });
         }
-        
+
         drop(tx);
 
         while let Some(update) = rx.recv().await {
@@ -123,5 +117,4 @@ impl Tgin {
             });
         }
     }
-    
 }

@@ -1,6 +1,5 @@
 use serde::Deserialize;
 
-
 #[derive(Deserialize, Debug)]
 pub struct TginConfig {
     #[serde(default = "default_workers")]
@@ -12,14 +11,15 @@ pub struct TginConfig {
     pub route: RouteStrategyConfig,
 }
 
-fn default_workers() -> usize { 4 }
+fn default_workers() -> usize {
+    4
+}
 
 #[derive(Deserialize, Debug)]
 pub struct SslConfig {
     pub cert: String,
     pub key: String,
 }
-
 
 #[derive(Deserialize, Debug)]
 pub enum UpdateConfig {
@@ -37,7 +37,9 @@ pub enum UpdateConfig {
     },
 }
 
-fn default_timeout() -> u64 { 100 }
+fn default_timeout() -> u64 {
+    100
+}
 
 #[derive(Deserialize, Debug)]
 pub struct RegistrationWebhookConfig {
@@ -47,20 +49,12 @@ pub struct RegistrationWebhookConfig {
 }
 #[derive(Deserialize, Debug)]
 pub enum RouteStrategyConfig {
-    RoundRobinLB {
-        routes: Vec<RouteConfig>,
-    },
-    AllLB {
-        routes: Vec<RouteConfig>,
-    },
+    RoundRobinLB { routes: Vec<RouteConfig> },
+    AllLB { routes: Vec<RouteConfig> },
 }
 
 #[derive(Deserialize, Debug)]
 pub enum RouteConfig {
-    LongPollRoute {
-        path: String,
-    },
-    WebhookRoute {
-        url: String,
-    },
+    LongPollRoute { path: String },
+    WebhookRoute { url: String },
 }
