@@ -10,6 +10,8 @@ use std::net::SocketAddr;
 
 use tokio::runtime::Builder;
 
+use crate::api::message::ApiMessage;
+
 pub struct Tgin {
     updates: Vec<Box<dyn UpdaterComponent>>,
     route: Arc<dyn RouteableComponent>,
@@ -18,6 +20,8 @@ pub struct Tgin {
 
     pub ssl_cert: Option<String>,
     pub ssl_key: Option<String>,
+
+    rx_api: Option<mpsc::Receiver<ApiMessage>>
 }
 
 impl Tgin {
@@ -34,6 +38,7 @@ impl Tgin {
             server_port,
             ssl_cert: None,
             ssl_key: None,
+            rx_api: None,
         }
     }
 
@@ -66,6 +71,7 @@ impl Tgin {
 
     pub async fn run_async(self) {
         let (tx, mut rx) = mpsc::channel::<Value>(10000);
+
 
         if let Some(port) = self.server_port {
             let mut router: Router<Sender<Value>> = Router::new();

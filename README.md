@@ -92,7 +92,7 @@ Simple configuration in the ron
 ### Todo:
 - [x] cli interface
 - [x] docker image
-- [ ] start from axum_server
+- [x] start from axum_server
 - [ ] logging
 - [ ] ddos guard
 - [ ] docs

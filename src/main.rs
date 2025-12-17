@@ -6,6 +6,8 @@ mod update;
 mod config;
 mod utils;
 
+mod api;
+
 use crate::tgin::Tgin;
 use crate::config::setup::{load_config, build_updates, build_route};
 
