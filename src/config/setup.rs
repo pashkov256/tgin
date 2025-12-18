@@ -51,7 +51,6 @@ pub fn build_updates(configs: Vec<UpdateConfig>) -> Vec<Box<dyn UpdaterComponent
             UpdateConfig::WebhookUpdate { path, registration } => {
                 let mut up = WebhookUpdate::new(path);
                 if let Some(reg) = registration {
-                    // up = up.with_registration(reg.token, reg.public_ip);
                 }
                 result.push(Box::new(up));
             }
@@ -62,7 +61,6 @@ pub fn build_updates(configs: Vec<UpdateConfig>) -> Vec<Box<dyn UpdaterComponent
 
 pub fn build_route(cfg: RouteConfig) -> Arc<dyn RouteableComponent> {
     match cfg {
-        // Базовые роуты
         RouteConfig::LongPollRoute { path } => {
             Arc::new(LongPollRoute::new(path))
         }
@@ -70,21 +68,19 @@ pub fn build_route(cfg: RouteConfig) -> Arc<dyn RouteableComponent> {
             Arc::new(WebhookRoute::new(url))
         }
         
-        // Рекурсивная сборка RoundRobin
         RouteConfig::RoundRobinLB { routes } => {
             let built_routes: Vec<Arc<dyn RouteableComponent>> = routes
                 .into_iter()
-                .map(build_route) // Вызываем сами себя для каждого под-элемента
+                .map(build_route) 
                 .collect();
             
             Arc::new(RoundRobinLB::new(built_routes))
         }
         
-        // Рекурсивная сборка AllLB
         RouteConfig::AllLB { routes } => {
             let built_routes: Vec<Arc<dyn RouteableComponent>> = routes
                 .into_iter()
-                .map(build_route) // Вызываем сами себя
+                .map(build_route) 
                 .collect();
 
             Arc::new(AllLB::new(built_routes))
