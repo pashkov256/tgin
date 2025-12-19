@@ -43,8 +43,9 @@ impl Routeable for LongPollRoute {
     }
 }
 
+#[async_trait]
 impl Serverable for LongPollRoute {
-    fn set_server(&self, router: Router<Sender<Value>>) -> Router<Sender<Value>> {
+    async fn set_server(&self, router: Router<Sender<Value>>) -> Router<Sender<Value>> {
         let updates = self.updates.clone();
         let notify = self.notify.clone();
 
@@ -105,18 +106,18 @@ impl Serverable for LongPollRoute {
 
 
 
-
+#[async_trait]
 impl Printable for LongPollRoute {
-    fn print(&self) -> String {
+    async fn print(&self) -> String {
         format!("longpull: http://0.0.0.0{}", self.path)
     }
 
-    fn json_struct(&self) -> Json<Value> {
-        Json(json!({
+    async fn json_struct(&self) -> Value {
+        json!({
             "type": "longpoll",
             "options": {
                 "path": self.path
             }
-        }))
+        })
     }
 }

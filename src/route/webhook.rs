@@ -32,18 +32,18 @@ impl Routeable for WebhookRoute {
 
 impl Serverable for WebhookRoute {}
 
-
+#[async_trait]
 impl Printable for WebhookRoute {
-    fn print(&self) -> String {
+    async fn print(&self) -> String {
         format!("webhook: {}", self.url)
     }
 
-    fn json_struct(&self) -> Json<Value> {
-        Json(json!({
+    async fn json_struct(&self) -> Value {
+        json!({
             "type": "webhook",
             "options": {
                 "url": self.url
             }
-        }))
+        })
     }
 }

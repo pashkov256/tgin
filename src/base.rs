@@ -2,6 +2,8 @@
 use async_trait::async_trait;
 use serde_json::{Value, json};
 
+use std::sync::Arc;
+
 use tokio::sync::mpsc::Sender;
 
 use axum::{Json, Router};
@@ -12,27 +14,31 @@ use crate::update::base::Updater;
 #[async_trait]
 pub trait Routeable: Send + Sync {
     async fn process(&self, update: Value);
-}
 
+    async fn add_route(&self, route: Arc<dyn RouteableComponent>) -> Result<(), ()>{
+        Err(())
+    }
+}
+#[async_trait]
 pub trait Serverable {
-    fn set_server(&self, server: Router<Sender<Value>>) -> Router<Sender<Value>> {
+    async fn set_server(&self, server: Router<Sender<Value>>) -> Router<Sender<Value>> {
         server
     }
 }
-
+#[async_trait]
 pub trait Printable {
-    fn print(&self) -> String;
+    async fn print(&self) -> String;
 
-    fn json_struct(&self) -> Json<Value> { 
-        Json(json!({
+    async fn json_struct(&self) -> Value { 
+        json!({
 
-        }))
+        })
     }
 }
 
-pub trait UpdaterComponent: Updater + Serverable + Printable {}
+pub trait UpdaterComponent: Updater + Serverable + Printable + Send + Sync {}
 impl<T: Updater + Serverable + Printable> UpdaterComponent for T {}
 
-pub trait RouteableComponent: Routeable + Serverable + Printable {}
+pub trait RouteableComponent: Routeable + Serverable + Printable + Send + Sync{}
 impl<T: Routeable + Serverable + Printable> RouteableComponent for T {}
 

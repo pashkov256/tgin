@@ -9,22 +9,26 @@ fn default_sublevel() -> i8 {
 pub struct AddWebhookRoute {
     #[serde(default)]
     pub url: String,
-    #[serde(default = "default_sublevel")]
-    pub sublevel: i8
 }
 
 
 #[derive(Deserialize, Debug)]
 pub struct AddLongpullRoute {
     #[serde(default)]
-    path: String,
-    #[serde(default = "default_sublevel")]
-    sublevel: i8
+    pub path: String,
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum AddRoute {
+#[serde(tag = "type")] 
+pub enum RouteType {
     Webhook(AddWebhookRoute),
     Longpull(AddLongpullRoute),
+}
+
+#[derive(Deserialize, Debug)]
+pub struct AddRoute {
+    #[serde(flatten)]
+    pub typee: RouteType,
+    #[serde(default = "default_sublevel")]
+    pub sublevel: i8
 }

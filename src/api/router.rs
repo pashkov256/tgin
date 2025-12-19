@@ -9,6 +9,7 @@ use crate::api::message::ApiMessage;
 
 use crate::api::methods;
 
+use async_trait::async_trait;
 
 
 
@@ -36,11 +37,12 @@ impl Api {
 
 }
 
-
+#[async_trait]
 impl Serverable for Api {
-    fn set_server(&self, main_router: Router<Sender<Value>>) -> Router<Sender<Value>> {
+    async fn set_server(&self, main_router: Router<Sender<Value>>) -> Router<Sender<Value>> {
         let router = Router::new()
             .route("/routes", get(methods::get_routes))
+            .route("/route", post(methods::add_route))
             .with_state(self.tx.clone());
 
 

@@ -91,8 +91,10 @@ impl Updater for WebhookUpdate {
     }
 }
 
+
+#[async_trait]
 impl Serverable for WebhookUpdate {
-    fn set_server(&self, router: Router<Sender<Value>>) -> Router<Sender<Value>> {
+    async fn set_server(&self, router: Router<Sender<Value>>) -> Router<Sender<Value>> {
         router.route(&self.path, post(handler))
     }
 }
@@ -103,8 +105,9 @@ async fn handler(State(tx): State<Sender<Value>>, Json(update): Json<Value>) {
 }
 
 
+#[async_trait]
 impl Printable for WebhookUpdate {
-    fn print(&self) -> String {
+    async fn print(&self) -> String {
         let reg_text = match &self.registration {
             Some(reg)  => format!("REGISTRATED ON {}", &reg.token_regex.replace_all(&reg.set_webhook_url, "#####")),
             None => "".to_string()

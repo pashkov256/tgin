@@ -91,9 +91,9 @@ impl Updater for LongPollUpdate {
 impl Serverable for LongPollUpdate {}
 
 
-
+#[async_trait]
 impl Printable for LongPollUpdate {
-    fn print(&self) -> String {
+    async fn print(&self) -> String {
         let token = self.token_regex.replace_all(&self.url, "#####");
 
         let timeout_text = if self.default_timeout_sleep == 100 && self.error_timeout_sleep == 200 {format!("timeouts: {} {}", self.default_timeout_sleep, self.error_timeout_sleep)} else {"".to_string()};

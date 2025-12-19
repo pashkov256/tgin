@@ -54,45 +54,48 @@ impl Tgin {
     }
 
     pub fn run(self) {
-        println!("STARTED TGIN with {} worker threads\n", &self.dark_threads);
-
-        println!("CATCH UPDATES FROM\n");
-
-        for update in &self.updates {
-            println!("{}\n", update.print());
-        }
-
-        println!("\nRUTE TO\n");
-
-        println!("{}", &self.route.print());
-
         let runtime = Builder::new_multi_thread()
             .worker_threads(self.dark_threads)
             .enable_all()
             .build()
             .expect("Failed to build Tokio runtime");
+        runtime.block_on(async {
+            println!("STARTED TGIN with {} worker threads\n", &self.dark_threads);
+
+            println!("CATCH UPDATES FROM\n");
+
+            for update in &self.updates {
+                println!("{}\n", update.print().await);
+            }
+
+            println!("\nRUTE TO\n");
+
+            println!("{}", &self.route.print().await);
+
+        });
 
         runtime.block_on(self.run_async());
     }
+
+
 
     pub async fn run_async(self) {
         let (tx, mut rx) = mpsc::channel::<Value>(10000);
 
         let api = self.api;
 
-
         if let Some(port) = self.server_port {
             let mut router: Router<Sender<Value>> = Router::new();
 
             for provider in &self.updates {
-                router = provider.set_server(router);
+                router = provider.set_server(router).await;
             }
 
-            router = self.route.set_server(router);
+            router = self.route.set_server(router).await;
 
 
             if let Some(ref api) = api {
-                router = api.set_server(router);
+                router = api.set_server(router).await;
             }
 
 
@@ -149,12 +152,17 @@ impl Tgin {
                         Some(api) = api.rx.recv() => {
                         match api {
                                 ApiMessage::GetRoutes(tx_response) => {
-                                    let _ = tx_response.send(self.route.json_struct());
+                                    let _ = tx_response.send(self.route.json_struct().await);
                                 }
 
 
                                 ApiMessage::AddRoute{route, sublevel} => {
-                                    
+                                    let self_route = self.route.clone();
+                                    match self_route.add_route(route).await {
+                                        Err(_) => {},
+                                        Ok(_) => {}
+
+                                    }
                                     // let new_route = Arc::new(WebhookRoute::new(data.url));
                                     
                                     // self.lb.add_route_internal(data.id, new_route).await;

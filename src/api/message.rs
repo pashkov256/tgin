@@ -13,5 +13,5 @@ pub enum ApiMessage {
         route: Arc<dyn RouteableComponent>,
         sublevel: i8
     },
-    GetRoutes(Sender<Json<Value>>)
+    GetRoutes(Sender<Value>)
 }

@@ -1,8 +1,8 @@
 
 use crate::base::{Routeable, RouteableComponent, Serverable, Printable};
 
-use tokio::sync::mpsc::Sender;
-use axum::{Router, Json};
+use tokio::sync::{mpsc::Sender, RwLock};
+use axum::{Router};
 
 use std::sync::Arc;
 
@@ -12,13 +12,13 @@ use async_trait::async_trait;
 use serde_json::{Value, json};
 
 pub struct AllLB {
-    routes: Vec<Arc<dyn RouteableComponent>>,
+    routes: RwLock<Vec<Arc<dyn RouteableComponent>>>
 }
 
 impl AllLB {
     pub fn new(routes: Vec<Arc<dyn RouteableComponent>>) -> Self {
         Self {
-            routes,
+            routes: RwLock::new(routes),
         }
     }
 }
@@ -26,8 +26,8 @@ impl AllLB {
 #[async_trait]
 impl Routeable for AllLB {
     async fn process(&self, update: Value) {
-        for route in &self.routes {
-
+        let routes = self.routes.read().await;
+        for route in routes.iter() {
             let route = route.clone();
             let update = update.clone();
 
@@ -38,37 +38,41 @@ impl Routeable for AllLB {
     }
 }
 
+#[async_trait]
 impl Serverable for AllLB {
-    fn set_server(&self, mut router: Router<Sender<Value>>) -> Router<Sender<Value>> {
-        for route in &self.routes {
-            router = route.set_server(router);
+    async fn set_server(&self, mut router: Router<Sender<Value>>) -> Router<Sender<Value>> {
+        let routes = self.routes.read().await;
+        for route in routes.iter() {
+            router = route.set_server(router).await;
         }
         router
     }
 }
 
+#[async_trait]
 impl Printable for AllLB {
-    fn print(&self) -> String {
+    async fn print(&self) -> String {
+        let routes = self.routes.read().await;
+        let mut text = String::from("LOAD BALANCER All\n\n");
 
-        let mut text = String::from("LOAD BALANCER AllLB");
-
-        for route in &self.routes {
-            text.push_str(&format!("{}\n\n", &route.print()));
+        for route in routes.iter() {
+            text.push_str(&format!("{}\n\n", route.print().await));
         }
         text
     }
 
-    fn json_struct(&self) -> Json<Value> {
-        let routes_json: Vec<Value> = self.routes
-            .iter()
-            .map(|route| route.json_struct().0) 
-            .collect();
+    async fn json_struct(&self) -> Value {
+        let routes = self.routes.read().await;
+        let mut routes_json: Vec<Value> = Vec::new();
+        for route in routes.iter() {
+            routes_json.push(route.json_struct().await);
+        }
 
-        Json(json!({
+        json!({
             "type": "load-balancer",
             "name": "all",
             "routes": routes_json
-        }))
+        })
     }
 
 

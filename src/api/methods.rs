@@ -6,7 +6,7 @@ use tokio::sync::oneshot;
 use tokio;
 use std::sync::Arc;
 
-use crate::api::schemas::{AddRoute};
+use crate::api::schemas::{AddRoute, RouteType};
 use crate::api::message::ApiMessage;
 
 use crate::route::webhook::WebhookRoute;
@@ -19,19 +19,21 @@ use crate::route::webhook::WebhookRoute;
 
 
 pub async fn add_route(State(tx): State<Sender<ApiMessage>>, Json(data): Json<AddRoute>)  {
-    match data {
-        AddRoute::Longpull(route) => {
-
+    let route = match data.typee {
+        RouteType::Longpull(route) => {
+            let update = WebhookRoute::new(route.path);
+            Arc::new(update)
         },
-        AddRoute::Webhook(data) => {
-            let update = WebhookRoute::new(data.url);
-            let route = Arc::new(update);
-            let _ = tx.send(ApiMessage::AddRoute{
-                sublevel: data.sublevel,
-                route
-            }).await;
+        RouteType::Webhook(route) => {
+            let update = WebhookRoute::new(route.url);
+            Arc::new(update)
         }
-    }
+    };
+
+    let _ = tx.send(ApiMessage::AddRoute{
+        sublevel: data.sublevel,
+        route
+        }).await;
 
 }
 
@@ -43,7 +45,7 @@ pub async fn get_routes(State(tx): State<Sender<ApiMessage>>) -> Result<Json<Val
     let _ = tx.send(ApiMessage::GetRoutes(tx_response)).await;
 
     match rx_response.await {
-        Ok(json) => Ok(json),
+        Ok(json) => Ok(Json::from(json)),
         Err(_) => Err((
             http::StatusCode::INTERNAL_SERVER_ERROR
         )),
