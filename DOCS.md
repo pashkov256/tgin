@@ -48,8 +48,6 @@ Top-level structure loaded from `tgin.ron` (`src/config/schema.rs`):
   Fields:  
   - `token` (required): Telegram bot token (`123456:ABC`).  
   - `url` (optional): Override for the Telegram API endpoint (defaults to `https://api.telegram.org`).  
-  - `default_timeout_sleep` (default `100` ms): Cool-down between successful polling iterations.  
-  - `error_timeout_sleep` (default `100` ms): Backoff duration after JSON or network errors.  
   Behavior: periodically calls `getUpdates` with an ever-increasing offset and forwards every update into the routing layer.
 
 - **`WebhookUpdate`**  
