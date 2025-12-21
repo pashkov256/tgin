@@ -1,0 +1,33 @@
+let step = 100
+
+let usecases = ["webhook-direct", "webhook-tgin", "longpull-tgin", "longpull-direct"]
+
+let current_rps = 100
+
+
+
+main {
+    $ make clean $?
+
+    $ make build $?
+
+
+    for command in usecases {
+        let output = $ make {command} RPS={current_rps} $?
+
+
+
+
+
+
+
+
+
+    }
+
+}
+
+
+
+
+
