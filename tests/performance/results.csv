@@ -1,1 +1,1 @@
-mode,RPS,
+mode,rps,sent,recv,errors,loss_%,min_ms,mean_ms,p50_ms,p95_ms,p99_ms,max_ms
