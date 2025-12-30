@@ -1,12 +1,10 @@
 import { file_append } from "std/fs"
 
-let usecases = ["webhook-direct", "webhook-tgin", "webhook-tgin-3", "webhook-tgin-4", "webhook-tgin-5", "longpull-direct", "longpull-tgin", "longpull-tgin-3", "longpull-tgin-4", "longpull-tgin-5"]
+let usecases = ["webhook-direct", "webhook-tgin", "webhook-tgin-3", "webhook-tgin-4", "webhook-tgin-5", "webhook-tgin-10", "longpull-direct", "longpull-tgin", "longpull-tgin-3", "longpull-tgin-4", "longpull-tgin-5", "longpull-tgin-10"]
 
 let rps_values = [500, 1000, 2000, 5000, 8000, 10000]
 
-main(args) {
-    let processor = args[0]
-
+main {
     $ make clean $?
     $ make build $?
     

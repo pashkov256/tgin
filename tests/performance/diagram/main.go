@@ -21,6 +21,7 @@ const (
 	ColLoss   = 5
 	ColMeanMS = 7
 	ColMaxMS  = 11
+	ColMedian = 8
 )
 
 func main() {
@@ -33,6 +34,7 @@ func main() {
 	createPlot("loss.png", "Loss Rate (%)", "RPS", "Loss (%)", records, ColLoss)
 	createPlot("mean.png", "Mean Latency (ms)", "RPS", "Time (ms)", records, ColMeanMS)
 	createPlot("max.png", "Max Latency (ms)", "RPS", "Time (ms)", records, ColMaxMS)
+	createPlot("median.png", "Median Latency (ms)", "RPS", "Time (ms)", records, ColMedian)
 
 }
 
@@ -105,11 +107,13 @@ func createPlot(filename, title, xLabel, yLabel string, records [][]string, valC
 		color.RGBA{R: 0, G: 128, B: 0, A: 255},
 		color.RGBA{R: 255, G: 165, B: 0, A: 255},
 		color.RGBA{R: 128, G: 0, B: 128, A: 255},
+		color.RGBA{R: 255, G: 215, B: 0, A: 255},
 		color.RGBA{R: 0, G: 255, B: 255, A: 255},
 		color.RGBA{R: 165, G: 42, B: 42, A: 255},
 		color.RGBA{R: 0, G: 0, B: 0, A: 255},
 		color.RGBA{R: 255, G: 0, B: 255, A: 255},
 		color.RGBA{R: 128, G: 128, B: 128, A: 255},
+		color.RGBA{R: 34, G: 139, B: 34, A: 255},
 	}
 
 	var sortedModes []string

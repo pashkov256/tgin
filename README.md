@@ -12,7 +12,7 @@
 
 #### dedicated routing layer for Telegram bot infrastructure that enables efficient distribution of incoming updates across multiple bot instances. Think of it as NGINX for Telegram's Bot API ecosystem
 
-[DOCUMENTATION](DOCS.md)
+[DOCUMENTATION](DOCS.md) | [PERFORMANCE](PERF.md)
 
 ### Why Tgin?
 - Load balancing: distributes Telegram updates evenly across multiple bot instances
@@ -91,3 +91,16 @@ Simple configuration in the ron
 
 ### Main Goal
 **Provide a complete infrastructure toolkit for building scalable, high-load Telegram bots with microservices architecture and production-ready support**
+
+### Profit
+
+<table>
+  <tr>
+    <td><img src="tests/performance/diagram/loss.png" alt="Loss Rate" width="500"></td>
+    <td><img src="tests/performance/diagram/median.png" alt="Median Latency" width="500"></td>
+  </tr>
+  <tr>
+    <td><img src="tests/performance/diagram/mean.png" alt="Mean Latency" width="500"></td>
+    <td><img src="tests/performance/diagram/max.png" alt="Max Latency" width="500"></td>
+  </tr>
+</table>

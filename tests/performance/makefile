@@ -21,7 +21,7 @@ webhook-direct: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 webhook-tgin: clean
 	docker compose up -d tgin_webhook webhook_bot1 webhook_bot2 bench
@@ -34,7 +34,7 @@ webhook-tgin: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 
 
@@ -49,7 +49,7 @@ longpull-tgin: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 
 
@@ -66,7 +66,7 @@ longpull-direct: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 
 
@@ -85,7 +85,7 @@ webhook-tgin-3: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 webhook-tgin-4: clean
 	docker compose up -d tgin_webhook webhook_bot1 webhook_bot2 bench webhook_bot3 webhook_bot4
@@ -101,7 +101,7 @@ webhook-tgin-4: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 webhook-tgin-5: clean
 	docker compose up -d tgin_webhook webhook_bot1 webhook_bot2 bench webhook_bot3 webhook_bot4 webhook_bot5
@@ -118,7 +118,7 @@ webhook-tgin-5: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 webhook-tgin-10: clean
 	docker compose up -d tgin_webhook webhook_bot1 webhook_bot2 bench webhook_bot3 webhook_bot4 webhook_bot5 webhook_bot6 webhook_bot7 webhook_bot8 webhook_bot9 webhook_bot10
@@ -141,7 +141,7 @@ webhook-tgin-10: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 
 longpull-tgin-3: clean
@@ -157,7 +157,7 @@ longpull-tgin-3: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 
 
@@ -176,7 +176,7 @@ longpull-tgin-4: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 
 longpull-tgin-5: clean
@@ -196,7 +196,7 @@ longpull-tgin-5: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
 
 longpull-tgin-10: clean
@@ -221,5 +221,5 @@ longpull-tgin-10: clean
 		--rps $(RPS) \
 		--duration $(DURATION)
 
-	@sleep 10
+	@sleep 60
 
