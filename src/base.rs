@@ -2,8 +2,6 @@
 use async_trait::async_trait;
 use serde_json::{Value, json};
 
-use std::sync::Arc;
-
 use tokio::sync::mpsc::Sender;
 
 use axum::Router;
@@ -18,6 +16,7 @@ pub trait Routeable: Send + Sync {
     async fn process(&self, update: Value);
 
     async fn add_route(&self, route: AddRouteType) -> Result<(), ()>{
+        drop(route);
         Err(())
     }
 }
@@ -29,7 +28,7 @@ pub trait Serverable {
 }
 #[async_trait]
 pub trait Printable {
-    async fn print(&self) -> String;
+    async fn print(&self) -> String { "".into() }
 
     async fn json_struct(&self) -> Value { 
         json!({

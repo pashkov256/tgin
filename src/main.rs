@@ -14,6 +14,9 @@ use crate::config::setup::{load_config, build_updates, build_route};
 
 use clap::{Arg, Command};
 
+#[cfg(test)]
+mod mock;
+
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let cli = Command::new("tgin")
         .about("tgin is a telegram bot routing layer")

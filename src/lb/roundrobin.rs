@@ -4,11 +4,10 @@ use crate::base::{Routeable, RouteableComponent, Serverable, Printable};
 use crate::api::message::AddRouteType;
 
 use tokio::sync::mpsc::Sender;
-use axum::{Router, Json};
+use axum::{Router};
 
 use tokio::sync::RwLock;
 
-use std::mem::zeroed;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Arc;
 
@@ -110,5 +109,107 @@ impl Printable for RoundRobinLB {
             "name": "round-robin",
             "routes": routes_json
         })
+    }
+}
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mock::routes::MockCallsRoute;
+    #[tokio::test]
+
+    async fn test_empty_routes_does_not_panic() {
+        let lb = RoundRobinLB::new(vec![]);
+        
+        lb.process(json!({"update_id": 1})).await;
+        
+        let json = lb.json_struct().await;
+        assert_eq!(json["routes"].as_array().unwrap().len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_round_robin_distribution_even() {
+        let route1 = Arc::new(MockCallsRoute::new("A"));
+        let route2 = Arc::new(MockCallsRoute::new("B"));
+
+        let lb = RoundRobinLB::new(vec![
+            route1.clone(),
+            route2.clone(),
+        ]);
+
+        for i in 0..4 {
+            lb.process(json!({"id": i})).await;
+        }
+
+        assert_eq!(route1.count().await, 2);
+        assert_eq!(route2.count().await, 2);
+    }
+
+    #[tokio::test]
+    async fn test_round_robin_ordering() {
+        
+        let r1 = Arc::new(MockCallsRoute::new("1"));
+        let r2 = Arc::new(MockCallsRoute::new("2"));
+        let r3 = Arc::new(MockCallsRoute::new("3"));
+
+        let lb = RoundRobinLB::new(vec![r1.clone(), r2.clone(), r3.clone()]);
+
+        lb.process(json!("msg1")).await;
+        let c1 = r1.get_calls().await;
+        assert_eq!(c1.len(), 1);
+        assert_eq!(c1[0], "msg1");
+        assert_eq!(r2.count().await, 0);
+        assert_eq!(r3.count().await, 0);
+
+        lb.process(json!("msg2")).await;
+        assert_eq!(r2.count().await, 1);
+
+        lb.process(json!("msg3")).await;
+        assert_eq!(r3.count().await, 1);
+
+        lb.process(json!("msg4")).await;
+        assert_eq!(r1.count().await, 2);
+    }
+
+    #[tokio::test]
+    async fn test_json_structure_aggregation() {
+        let r1 = Arc::new(MockCallsRoute::new("alpha"));
+        let r2 = Arc::new(MockCallsRoute::new("beta"));
+
+        let lb = RoundRobinLB::new(vec![r1, r2]);
+
+        let output = lb.json_struct().await;
+
+        assert_eq!(output["type"], "load-balancer");
+        assert_eq!(output["name"], "round-robin");
+        
+        let routes_arr = output["routes"].as_array().expect("routes should be an array");
+        assert_eq!(routes_arr.len(), 2);
+        assert_eq!(routes_arr[0]["id"], "alpha");
+        assert_eq!(routes_arr[1]["id"], "beta");
+    }
+
+    #[tokio::test]
+    async fn test_dynamic_add_webhook_route() {
+        let r1 = Arc::new(MockCallsRoute::new("static"));
+        let lb = RoundRobinLB::new(vec![r1.clone()]);
+
+        lb.process(json!(1)).await;
+        assert_eq!(r1.count().await, 1);
+
+        let r2 = Arc::new(MockCallsRoute::new("dynamic"));
+        
+        let add_res = lb.add_route(AddRouteType::Webhook(r2.clone())).await;
+        assert!(add_res.is_ok());
+
+        let json_out = lb.json_struct().await;
+        assert_eq!(json_out["routes"].as_array().unwrap().len(), 2);
+
+        lb.process(json!(2)).await; 
+        
+        assert_eq!(r2.count().await, 1);
     }
 }

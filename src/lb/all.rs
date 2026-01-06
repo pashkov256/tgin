@@ -6,6 +6,8 @@ use axum::{Router};
 
 use std::sync::Arc;
 
+use crate::api::message::AddRouteType;
+use crate::dynamic::longpoll_registry::LONGPOLL_REGISTRY;
 
 use async_trait::async_trait;
 
@@ -34,6 +36,32 @@ impl Routeable for AllLB {
             tokio::spawn(async move {
                 route.process(update).await;
             });
+        }
+    }
+
+
+
+
+    async fn add_route(&self, route: AddRouteType) -> Result<(), ()>{
+        let mut routes = self.routes.write().await;
+
+        match route {
+            AddRouteType::Longpull(route_arc) => {
+                match LONGPOLL_REGISTRY.write() {
+                    Ok(mut registry) => {
+                        registry.insert(route_arc.path.clone(), route_arc.clone());
+                        routes.push(route_arc); 
+                        Ok(())
+                    }
+                    Err(_) => {
+                        Err(())
+                    }
+                }
+            },
+            AddRouteType::Webhook(route) => {
+                routes.push(route); 
+                Ok(())
+            },
         }
     }
 }
@@ -76,4 +104,103 @@ impl Printable for AllLB {
     }
 
 
+}
+
+
+
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::mock::routes::MockCallsRoute;
+    use std::time::Duration;
+
+    #[tokio::test]
+    async fn test_empty_routes_does_not_panic() {
+        let lb = AllLB::new(vec![]);
+        
+        lb.process(json!({"update_id": 1})).await;
+        
+        let json = lb.json_struct().await;
+        assert_eq!(json["routes"].as_array().unwrap().len(), 0);
+    }
+
+    #[tokio::test]
+    async fn test_all_broadcast_distribution() {
+        let route1 = Arc::new(MockCallsRoute::new("A"));
+        let route2 = Arc::new(MockCallsRoute::new("B"));
+
+        let lb = AllLB::new(vec![
+            route1.clone(),
+            route2.clone(),
+        ]);
+
+        lb.process(json!({"msg": "hello"})).await;
+
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        assert_eq!(route1.count().await, 1);
+        assert_eq!(route2.count().await, 1);
+        let c1 = route1.get_calls().await;
+        let c2 = route2.get_calls().await;
+        assert_eq!(c1[0]["msg"], "hello");
+        assert_eq!(c2[0]["msg"], "hello");
+    }
+
+    #[tokio::test]
+    async fn test_multiple_messages_broadcast() {
+        let r1 = Arc::new(MockCallsRoute::new("1"));
+        let r2 = Arc::new(MockCallsRoute::new("2"));
+        let r3 = Arc::new(MockCallsRoute::new("3"));
+
+        let lb = AllLB::new(vec![r1.clone(), r2.clone(), r3.clone()]);
+
+        lb.process(json!("m1")).await;
+        lb.process(json!("m2")).await;
+        lb.process(json!("m3")).await;
+
+        tokio::time::sleep(Duration::from_millis(50)).await;
+
+        assert_eq!(r1.count().await, 3);
+        assert_eq!(r2.count().await, 3);
+        assert_eq!(r3.count().await, 3);
+    }
+
+    #[tokio::test]
+    async fn test_json_structure() {
+        let r1 = Arc::new(MockCallsRoute::new("x"));
+        let lb = AllLB::new(vec![r1]);
+
+        let output = lb.json_struct().await;
+
+        assert_eq!(output["type"], "load-balancer");
+        assert_eq!(output["name"], "all");
+        assert_eq!(output["routes"].as_array().unwrap().len(), 1);
+    }
+
+    #[tokio::test]
+    async fn test_dynamic_add_route_broadcast() {
+        let r1 = Arc::new(MockCallsRoute::new("static"));
+        let lb = AllLB::new(vec![r1.clone()]);
+
+        lb.process(json!(1)).await;
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        assert_eq!(r1.count().await, 1);
+
+        let r2 = Arc::new(MockCallsRoute::new("dynamic"));
+        let add_res = lb.add_route(AddRouteType::Webhook(r2.clone())).await;
+        assert!(add_res.is_ok());
+
+        let json_out = lb.json_struct().await;
+        assert_eq!(json_out["routes"].as_array().unwrap().len(), 2);
+
+        lb.process(json!(2)).await;
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        
+        assert_eq!(r1.count().await, 2);
+        assert_eq!(r2.count().await, 1);
+    }
 }

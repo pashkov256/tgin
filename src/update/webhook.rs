@@ -115,3 +115,83 @@ impl Printable for WebhookUpdate {
         format!("webhook: 0.0.0.0{} {}", self.path, reg_text)
     }
 }
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wiremock::{MockServer, Mock, ResponseTemplate};
+    use wiremock::matchers::method;
+    use tokio::sync::mpsc;
+    use tower::ServiceExt;
+    use axum::body::Body;
+    use axum::http::{Request, StatusCode};
+
+
+    #[tokio::test]
+    async fn test_webhook_registers_correctly() {
+        let mock_server = MockServer::start().await;
+
+        Mock::given(method("POST"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .set_body_json(json!({"ok": true, "result": true}))
+            )
+            .expect(1)
+            .mount(&mock_server)
+            .await;
+
+        let my_ip = "https://my-server.com";
+        let token = "TOKEN123";
+        
+        let mut reg_config = RegistrationWebhookConfig::new(token.to_string(), my_ip.to_string());
+
+        let client = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap();
+        reg_config.set_client(client);
+
+        reg_config.set_webhook_url(format!("{}/setWebhook", mock_server.uri()));
+
+        let mut updater = WebhookUpdate::new("/webhook".to_string());
+        updater.registration = Some(reg_config);
+
+        let (tx, _) = mpsc::channel(1);
+
+        updater.start(tx).await;
+    }
+
+    #[tokio::test]
+    async fn test_webhook_handler_receives_json_and_sends_to_channel() {
+        let updater = WebhookUpdate::new("/bot/update".to_string());
+        
+        let (tx, mut rx) = mpsc::channel(10);
+
+        let app = Router::new();
+        let app = updater.set_server(app).await.with_state(tx);
+
+        let incoming_payload = json!({
+            "update_id": 999,
+            "message": { "text": "Hello via Webhook" }
+        });
+
+        let request = Request::builder()
+            .method("POST")
+            .uri("/bot/update")
+            .header("content-type", "application/json")
+            .body(Body::from(serde_json::to_vec(&incoming_payload).unwrap()))
+            .unwrap();
+
+        let response = app.oneshot(request).await.unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+
+        let received = rx.recv().await.expect("Channel should receive update");
+        
+        assert_eq!(received["update_id"], 999);
+        assert_eq!(received["message"]["text"], "Hello via Webhook");
+    }
+}

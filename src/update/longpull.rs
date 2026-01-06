@@ -101,3 +101,77 @@ impl Printable for LongPollUpdate {
         format!("longpull: {} {}", token, timeout_text)
     }
 }
+
+
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use wiremock::{MockServer, Mock, ResponseTemplate};
+    use tokio::sync::mpsc;
+    use wiremock::matchers::{any, path}; 
+    use tokio::time::timeout;
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn test_longpoll_fetches_updates_and_sends_to_channel() {
+
+        let mock_server = MockServer::start().await;
+
+        let response_body = serde_json::json!({
+            "ok": true,
+            "result": [
+                { "update_id": 100, "message": { "text": "test1" } },
+                { "update_id": 101, "message": { "text": "test2" } }
+            ]
+        });
+
+        Mock::given(any())
+            .and(path("/botMYTOKEN/getUpdates"))
+            .respond_with(
+                ResponseTemplate::new(200)
+                    .insert_header("content-type", "application/json")
+                    .set_body_json(response_body)
+            )
+            .expect(1..)
+            .mount(&mock_server)
+            .await;
+
+        let mut updater = LongPollUpdate::new("MYTOKEN".to_string());
+
+        let client = Client::builder()
+            .no_proxy()
+            .build()
+            .unwrap();
+        updater.set_client(client);
+        
+        let mock_url = format!("{}/botMYTOKEN/getUpdates", mock_server.uri());
+        updater.set_url(mock_url);
+        
+        updater.set_timeouts(0, 0);
+
+        let (tx, mut rx) = mpsc::channel(10);
+            
+        let handle = tokio::spawn(async move {
+            updater.start(tx).await;
+        });
+
+        let update1 = timeout(Duration::from_secs(1), rx.recv())
+            .await
+            .expect("Timed out waiting for update 1")
+            .expect("Channel closed unexpectedly");
+        assert_eq!(update1["update_id"], 100);
+        assert_eq!(update1["message"]["text"], "test1");
+
+        let update2 = timeout(Duration::from_secs(1), rx.recv())
+            .await
+            .expect("Timed out waiting for update 2")
+            .expect("Channel closed unexpectedly");
+        assert_eq!(update2["update_id"], 101);
+
+        handle.abort();
+    }
+
+
+}
