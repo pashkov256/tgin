@@ -10,7 +10,7 @@
            \_/__/
 ```
 
-<p align="center"><strong>TGIN</strong> <em>- dedicated infrastructure layer for highly loaded Telegram bots. <br/>Imagine NGINX for the Telegram Bot API ecosystem</em></p>
+<p align="center"><strong>TGIN</strong> <em>- dedicated infrastructure layer for highly loaded Telegram bots.</em> <br/>Imagine NGINX for the Telegram Bot API ecosystem</p>
 
 <p align="center">
           <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
