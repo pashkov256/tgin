@@ -20,13 +20,13 @@
   
 </p>
 
-<hr/>
+
 
 <p>
 TGIN solves the problem of distributing incoming updates between multiple bots. Created for those who scale Telegram bots.
 </p>
 
-<hr>
+<hr/>
 
 
 ### Why Tgin?
