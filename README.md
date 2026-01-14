@@ -14,8 +14,11 @@
 
 <p align="center">
           <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
+             <a href="https://github.com/chesnokpeter/tgin/blob/master/DOCS.md"><img src="https://img.shields.io/github/v/release/pashkov256/deletor" alt="docs"></a>      
+             <a href="https://github.com/chesnokpeter/tgin/blob/master/DOCS.md"><img src="https://img.shields.io/badge/docs-latest-brightgreen" alt="docs"></a>
         <a><img src="https://codecov.io/gh/pashkov256/deletor/graph/badge.svg?token=AGOWZDF04Y" alt="codecov"></a>
-        <a href="https://github.com/chesnokpeter/tgin/blob/master/DOCS.md"><img src="https://img.shields.io/badge/docs-latest-brightgreen" alt="docs"></a>
+  
+     
 
 
    
@@ -29,8 +32,6 @@ TGIN solves the problem of distributing incoming updates between multiple bots. 
 
 <hr>
 
-
-[DOCUMENTATION](DOCS.md) | [PERFORMANCE](PERF.md)
 
 ### Why Tgin?
 - Load balancing: distributes Telegram updates evenly across multiple bot instances
