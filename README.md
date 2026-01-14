@@ -63,7 +63,7 @@ git clone https://github.com/chesnokpeter/tgin.git
 cd tgin
 cargo build --release
 ```
-#### 2. Change config file `tgin.ron`:
+#### 2. Add token to config file `tgin.ron`:
 
 ```ron
 (
