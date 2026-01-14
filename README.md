@@ -10,16 +10,21 @@
            \_/__/
 ```
 
-<p align="center"><strong>TGIN</strong> <em>- dedicated infrastructure layer for highly loaded Telegram bots.</em></p>
+<p align="center"><strong>TGIN</strong> <em>- dedicated infrastructure layer for highly loaded Telegram bots. <br/>Imagine NGINX for the Telegram Bot API ecosystem</em></p>
 
 <p align="center">
           <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
         <a><img src="https://codecov.io/gh/pashkov256/deletor/graph/badge.svg?token=AGOWZDF04Y" alt="codecov"></a>
+        <a href="https://github.com/chesnokpeter/tgin/blob/master/DOCS.md"><img src="https://img.shields.io/badge/docs-latest-brightgreen" alt="docs"></a>
+
+
+   
+
 
 </p>
 
 <p>
-TGIN solves the problem of distributing incoming updates between multiple bots. Created for those who scale Telegram bots. Imagine NGINX for the Telegram Bot API ecosystem
+TGIN solves the problem of distributing incoming updates between multiple bots. Created for those who scale Telegram bots.
 </p>
 
 <hr>
