@@ -18,13 +18,9 @@
              <a href="https://github.com/chesnokpeter/tgin/blob/master/DOCS.md"><img src="https://img.shields.io/badge/docs-latest-brightgreen" alt="docs"></a>
         <a><img src="https://codecov.io/gh/pashkov256/deletor/graph/badge.svg?token=AGOWZDF04Y" alt="codecov"></a>
   
-     
-
-
-   
-
-
 </p>
+
+<hr/>
 
 <p>
 TGIN solves the problem of distributing incoming updates between multiple bots. Created for those who scale Telegram bots.
