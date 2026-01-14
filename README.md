@@ -10,7 +10,20 @@
            \_/__/
 ```
 
-#### dedicated routing layer for Telegram bot infrastructure that enables efficient distribution of incoming updates across multiple bot instances. Think of it as NGINX for Telegram's Bot API ecosystem
+<p align="center"><strong>TGIN</strong> <em>- dedicated infrastructure layer for highly loaded Telegram bots.</em></p>
+
+<p align="center">
+          <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT">
+        <a><img src="https://codecov.io/gh/pashkov256/deletor/graph/badge.svg?token=AGOWZDF04Y" alt="codecov"></a>
+
+</p>
+
+<p>
+TGIN solves the problem of distributing incoming updates between multiple bots. Created for those who scale Telegram bots. Imagine NGINX for the Telegram Bot API ecosystem
+</p>
+
+<hr>
+
 
 [DOCUMENTATION](DOCS.md) | [PERFORMANCE](PERF.md)
 
@@ -30,51 +43,50 @@
 - Production reliability: includes health monitoring, automatic retries, and failover handling
 
 ### Architecture Overview
-```
-Telegram Bot API
-     ↓  Webhook / LongPoll 
-    TGIN
-     ↓  Webhook / LongPoll 
-Bot Instance 1  |  Bot Instance 2  |  Bot Instance N 
+```mermaid
+graph TD
+    Telegram[Telegram Bot API] -->|Update| TGIN[TGIN Load Balancer]
+    TGIN -->|Route /bot1| Instance1[Bot Instance 1]
+    TGIN -->|Route /bot2| Instance2[Bot Instance 2]
+    TGIN -->|...| InstanceN[Bot Instance N]
 ```
 
 
 ### Quick start
-```
-# Clone the repository
+To launch the project, we will need the `1.91.1` version of Rust
+
+
+#### 1. Clone and build the project:
+
+```Bash
 git clone https://github.com/chesnokpeter/tgin.git
 cd tgin
-
-# Build the project
 cargo build --release
+```
+#### 2. Change config file `tgin.ron`:
 
-# Start with config
+```ron
+(
+    server_port: Some(3000),
+    updates: [
+        LongPollUpdate(
+            token: "YOUR_BOT_TOKEN", // Replace with your actual bot token from @BotFather
+        )
+    ],
+    route: RoundRobinLB(
+        routes: [
+            LongPollRoute(path: "/test-bot/getUpdates"),
+        ]
+    )
+)
+```
+
+#### 3. Start with config
+
+```Bash
 ./target/release/tgin -f tgin.ron
 ```
 
-### Configuration
-Simple configuration in the ron 
-``` tgin.ron
-// tgin.ron
-(
-    dark_threads: 6,
-    server_port: Some(3000),
-
-    updates: [
-        LongPollUpdate(
-            token: "${TOKEN}",
-        )
-    ],
-
-    route: RoundRobinLB(
-        routes: [
-            LongPollRoute(path: "/bot1/getUpdates"),
-            WebhookRoute(url: "http://127.0.0.1:8080/bot2"),
-        ]
-    )
-
-)
-```
 
 ### Future features
 - Complete API
